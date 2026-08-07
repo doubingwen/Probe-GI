@@ -4,6 +4,16 @@
 
 项目通过 Probe 捕获场景表面信息，将采样得到的 Surfel 在 Compute Shader 中重新光照并投影为 SH9 系数，最后在屏幕空间插值相邻 Probe 的 SH 数据，为场景叠加间接光照。
 
+## 运行效果
+
+### Sponza 场景整体效果
+
+![Sponza 场景中的 Probe GI 整体效果](pictures/probe_gi_1.png)
+
+### 拱廊区域间接光效果
+
+![Sponza 拱廊暗部中的 Probe GI 间接光效果](pictures/probe_gi_2.png)
+
 ## 环境
 
 - Unity `6000.0.67f1`
