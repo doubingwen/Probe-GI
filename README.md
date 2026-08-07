@@ -6,13 +6,17 @@
 
 ## 运行效果
 
-### Sponza 场景整体效果
+### 开启 Probe GI
 
 ![Sponza 场景中的 Probe GI 整体效果](pictures/probe_gi_1.png)
 
-### 拱廊区域间接光效果
+### 间接光对比
 
-![Sponza 拱廊暗部中的 Probe GI 间接光效果](pictures/probe_gi_2.png)
+| 未开启 Probe GI | 开启 Probe GI |
+| --- | --- |
+| ![未开启 Probe GI 时的拱廊暗部](pictures/no_probe.png) | ![开启 Probe GI 后的拱廊间接光效果](pictures/probe_gi_2.png) |
+
+开启 Probe GI 后，拱廊中的墙面、立柱和顶部暗部能够接收到由 Probe 重建的间接光照，减少完全发黑的区域。
 
 ## 环境
 
