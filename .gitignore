@@ -1,0 +1,40 @@
+# Unity generated directories
+/Library/
+/Temp/
+/Obj/
+/Build/
+/Builds/
+/Logs/
+/UserSettings/
+/MemoryCaptures/
+/Recordings/
+
+# IDE and editor files
+/.vs/
+/.vscode/
+/.idea/
+*.csproj
+*.sln
+*.slnx
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity and operating-system artifacts
+sysinfo.txt
+*.apk
+*.aab
+*.unitypackage
+*.app
+.DS_Store
+Thumbs.db
+
+# Local tooling and authentication artifacts
+/.agents/
+/.gh-auth-*.txt
