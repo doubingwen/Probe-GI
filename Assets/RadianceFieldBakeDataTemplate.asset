@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f586ca7ccdcef6d4ea7be4bc8c96e738, type: 3}
-  m_Name: ProbeVolumeData
+  m_Name: RadianceFieldBakeDataTemplate
   m_EditorClassIdentifier: 
-  volumePosition: {x: 0, y: 0, z: 0}
-  surfelStorageBuffer: []
+  capturedOrigin: {x: 0, y: 0, z: 0}
+  packedSurfaceSamples: []

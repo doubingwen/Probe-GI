@@ -1,8 +1,8 @@
-Shader "GI/GbufferAlbedo"
+Shader "DouGI/Capture/Normal"
 {
     Properties
     {
-        _BaseMap ("Texture", 2D) = "white" {}
+
     }
     SubShader
     {
@@ -20,34 +20,27 @@ Shader "GI/GbufferAlbedo"
             struct appdata
             {
                 float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
+                float3 normal : NORMAL;
             };
 
             struct v2f
             {
-                float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
+                float3 normal : TEXCOORD2;
             };
-
-            TEXTURE2D(_BaseMap);
-            SAMPLER(sampler_BaseMap);
-
-            CBUFFER_START(UnityPerMaterial)
-                float4 _BaseMap_ST;
-            CBUFFER_END
 
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = TransformObjectToHClip(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
+                o.normal = TransformObjectToWorldNormal(v.normal);
+                o.normal = normalize(o.normal);
                 return o;
             }
 
             float4 frag (v2f i) : SV_Target
             {
-                float4 col = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
-                return col;
+                return float4(i.normal, 1.0);
             }
             ENDHLSL
         }

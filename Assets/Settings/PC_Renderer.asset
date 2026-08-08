@@ -28,7 +28,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0e6626a8349f8544ba3660ff2010d156, type: 3}
-  m_Name: PRTComposite
+  m_Name: Radiance Field Composite Legacy
   m_EditorClassIdentifier: 
   m_Active: 1
   compositeMaterial: {fileID: 2100000, guid: 12502358bd17be04eaa99b29025a6ecf, type: 2}
@@ -42,10 +42,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 27eb67e293f4aff4bb312697d746b58e, type: 3}
-  m_Name: PrtComposite
+  m_Name: Radiance Field Composite
   m_EditorClassIdentifier: 
   m_Active: 1
-  compositeMaterial: {fileID: 2100000, guid: 12502358bd17be04eaa99b29025a6ecf, type: 2}
+  radianceCompositeMaterial: {fileID: 2100000, guid: 12502358bd17be04eaa99b29025a6ecf, type: 2}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,7 +111,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a6cae160037e3640bb1f5336301b6e0, type: 3}
-  m_Name: PRTRelight
+  m_Name: Radiance Field Update
   m_EditorClassIdentifier: 
   m_Active: 1
 --- !u!114 &4525097011129359492
@@ -124,7 +124,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a6cae160037e3640bb1f5336301b6e0, type: 3}
-  m_Name: PRTRelight
+  m_Name: Radiance Field Update
   m_EditorClassIdentifier: 
   m_Active: 1
 --- !u!114 &7833122117494664109

@@ -1,4 +1,4 @@
-Shader "GI/SHDebug"
+Shader "DouGI/Debug/RadianceLobe"
 {
     Properties
     {
@@ -16,12 +16,12 @@ Shader "GI/SHDebug"
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Assets/Shaders/SH.hlsl"
+            #include "Assets/Shaders/RadianceFieldSH.hlsl"
 
             // 使用定点数存储小数, 因为 compute shader 的 InterlockedAdd 不支持 float
             // array size: 3x9=27
             CBUFFER_START(UnityPerMaterial)
-                StructuredBuffer<int> _coefficientSH9; 
+                StructuredBuffer<int> _RF_ProbeCoefficients;
             CBUFFER_END
 
             struct appdata
@@ -54,13 +54,13 @@ Shader "GI/SHDebug"
                 float3 c[9];
                 for(int i=0; i<9; i++)
                 {
-                    c[i].x = DecodeFloatFromInt(_coefficientSH9[i*3+0]);
-                    c[i].y = DecodeFloatFromInt(_coefficientSH9[i*3+1]);
-                    c[i].z = DecodeFloatFromInt(_coefficientSH9[i*3+2]);
+                    c[i].x = DecodeRadiance(_RF_ProbeCoefficients[i*3+0]);
+                    c[i].y = DecodeRadiance(_RF_ProbeCoefficients[i*3+1]);
+                    c[i].z = DecodeRadiance(_RF_ProbeCoefficients[i*3+2]);
                 }
                 
                 // decode irradiance
-                float3 irradiance = IrradianceSH9(c, dir);
+                float3 irradiance = EvaluateDiffuseIrradiance(c, dir);
                 float3 Lo = irradiance / PI;
 
                 return float4(Lo, 1.0);

@@ -1,0 +1,96 @@
+#pragma kernel IntegrateProbeRadiance
+#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+#pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+#pragma multi_compile _ _SHADOWS_SOFT
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+#include "Assets/Shaders/RadianceFieldSH.hlsl"
+
+struct ProbeSurfaceSample
+{
+    float3 position;
+    float3 normal;
+    float3 albedo;
+    float skyVisibility;
+};
+
+RWStructuredBuffer<ProbeSurfaceSample> _RF_SurfaceSamples;
+RWStructuredBuffer<float3> _RF_SurfaceRadiance;
+RWStructuredBuffer<int> _RF_ProbeCoefficients;
+RWStructuredBuffer<int> _RF_FieldCoefficients;
+StructuredBuffer<int> _RF_HistoryCoefficients;
+
+float4 _RF_ProbePosition;
+float _RF_EnvironmentIntensity;
+float _RF_BounceIntensity;
+int _RF_ProbeGridIndex;
+float _RF_FieldSpacing;
+float4 _RF_FieldOrigin;
+float4 _RF_FieldDimensions;
+
+float3 EvaluateDirectLight(ProbeSurfaceSample sample)
+{
+    Light mainLight = GetMainLight();
+    float4 shadowCoordinate = TransformWorldToShadowCoord(sample.position);
+    float shadow = SampleShadowmap(
+        TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture),
+        shadowCoordinate,
+        GetMainLightShadowSamplingData(),
+        GetMainLightShadowParams(),
+        false);
+
+    float nDotL = saturate(dot(sample.normal, mainLight.direction));
+    return (sample.albedo / PI) * mainLight.color * nDotL * shadow * (1.0 - sample.skyVisibility);
+}
+
+[numthreads(32, 16, 1)]
+void IntegrateProbeRadiance(uint3 dispatchId : SV_DispatchThreadID)
+{
+    const float sampleNormalization = 4.0 * PI / 512.0;
+    uint sampleIndex = dispatchId.y * 32 + dispatchId.x;
+    ProbeSurfaceSample sample = _RF_SurfaceSamples[sampleIndex];
+    float3 direction = normalize(sample.position - _RF_ProbePosition.xyz);
+
+    float3 radiance = EvaluateDirectLight(sample);
+    float3 environment = SAMPLE_TEXTURECUBE_LOD(
+        _GlossyEnvironmentCubeMap,
+        sampler_GlossyEnvironmentCubeMap,
+        direction,
+        0).rgb;
+    radiance += environment * sample.skyVisibility * _RF_EnvironmentIntensity;
+
+    if (_RF_ProbeGridIndex >= 0)
+    {
+        float3 history = SampleRadianceField(
+            sample.position,
+            sample.albedo,
+            sample.normal,
+            _RF_HistoryCoefficients,
+            _RF_FieldSpacing,
+            _RF_FieldOrigin.xyz,
+            (int3)_RF_FieldDimensions.xyz);
+        radiance += history * _RF_BounceIntensity;
+    }
+
+    [unroll]
+    for (int coefficientIndex = 0; coefficientIndex < DOU_GI_SH_COEFFICIENT_COUNT; coefficientIndex++)
+    {
+        float3 projected = EvaluateShBasis(coefficientIndex, direction) * radiance * sampleNormalization;
+        int coefficientOffset = coefficientIndex * 3;
+        InterlockedAdd(_RF_ProbeCoefficients[coefficientOffset], EncodeRadiance(projected.x));
+        InterlockedAdd(_RF_ProbeCoefficients[coefficientOffset + 1], EncodeRadiance(projected.y));
+        InterlockedAdd(_RF_ProbeCoefficients[coefficientOffset + 2], EncodeRadiance(projected.z));
+
+        if (_RF_ProbeGridIndex >= 0)
+        {
+            int fieldOffset = _RF_ProbeGridIndex * DOU_GI_SH_RGB_VALUE_COUNT + coefficientOffset;
+            InterlockedAdd(_RF_FieldCoefficients[fieldOffset], EncodeRadiance(projected.x));
+            InterlockedAdd(_RF_FieldCoefficients[fieldOffset + 1], EncodeRadiance(projected.y));
+            InterlockedAdd(_RF_FieldCoefficients[fieldOffset + 2], EncodeRadiance(projected.z));
+        }
+    }
+
+    _RF_SurfaceRadiance[sampleIndex] = radiance;
+}

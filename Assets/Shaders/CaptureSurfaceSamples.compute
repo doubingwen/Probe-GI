@@ -1,0 +1,50 @@
+#pragma kernel CaptureSurfaceSamples
+
+struct ProbeSurfaceSample
+{
+    float3 position;
+    float3 normal;
+    float3 albedo;
+    float skyVisibility;
+};
+
+RWStructuredBuffer<ProbeSurfaceSample> _RF_SurfaceSamples;
+TextureCube _RF_WorldPositionCube;
+TextureCube _RF_NormalCube;
+TextureCube _RF_AlbedoCube;
+SamplerState sampler_point_clamp;
+float _RF_CaptureSeed;
+float4 _RF_ProbePosition;
+
+float HashNoise(float2 value)
+{
+    return frac(sin(dot(value, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+float3 SampleUnitSphere(float u, float v)
+{
+    float azimuth = 2.0 * 3.14159265 * u;
+    float cosElevation = 1.0 - 2.0 * v;
+    float sinElevation = sqrt(saturate(1.0 - cosElevation * cosElevation));
+    return float3(sinElevation * cos(azimuth), sinElevation * sin(azimuth), cosElevation);
+}
+
+[numthreads(32, 16, 1)]
+void CaptureSurfaceSamples(uint3 dispatchId : SV_DispatchThreadID)
+{
+    float2 sequence = float2(dispatchId.x, dispatchId.y) / float2(32.0, 16.0) + _RF_CaptureSeed;
+    float3 direction = SampleUnitSphere(HashNoise(sequence), HashNoise(sequence * 2.0));
+
+    float3 worldPosition = _RF_WorldPositionCube.SampleLevel(sampler_point_clamp, direction, 0).rgb;
+    float4 normalAndMask = _RF_NormalCube.SampleLevel(sampler_point_clamp, direction, 0);
+    float skyVisibility = saturate(1.0 - normalAndMask.w);
+
+    ProbeSurfaceSample sample;
+    sample.position = lerp(worldPosition, _RF_ProbePosition.xyz + direction, skyVisibility);
+    sample.normal = normalAndMask.xyz;
+    sample.albedo = _RF_AlbedoCube.SampleLevel(sampler_point_clamp, direction, 0).rgb;
+    sample.skyVisibility = skyVisibility;
+
+    uint sampleIndex = dispatchId.y * 32 + dispatchId.x;
+    _RF_SurfaceSamples[sampleIndex] = sample;
+}

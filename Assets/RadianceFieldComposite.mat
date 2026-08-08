@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SHComposite_mat
+  m_Name: RadianceFieldComposite
   m_Shader: {fileID: 4800000, guid: 062f37d1465a32d45b94e60279f44e46, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
